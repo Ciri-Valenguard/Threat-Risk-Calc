@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Modeling and Risk Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+        .risk-level-low { background-color: #4ade80; }
+        .risk-level-medium { background-color: #fcd34d; }
+        .risk-level-high { background-color: #fb923c; }
+        .risk-level-critical { background-color: #f87171; }
+
+        /* Custom slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            transition: background 0.15s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v14m-6 3h6m-10-4a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Threat Modeling and Risk Calculator
+        </h1>
+        <p class="text-sm text-gray-500 mb-6">Demonstrates risk analysis (Likelihood x Impact) for any scenario without relying on mock data.</p>
+
+        <!-- Input Panel -->
+        <div class="card p-6 mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="md:col-span-2">
+                <label for="assetName" class="block text-sm font-medium text-gray-700 mb-1">Asset or Threat Scenario</label>
+                <input type="text" id="assetName" value="Unpatched Internet-facing Web Server"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-base" placeholder="e.g., Unpatched Web Server, Credential Leak">
+            </div>
+
+            <!-- Likelihood Section -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-2">1. Likelihood (Probability)</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Technical Feasibility of Exploit:</label>
+                    <input type="range" id="feasibility" min="1" max="5" value="4" oninput="updateRisk()">
+                    <div id="feasibilityValue" class="text-center text-lg font-bold text-purple-600 mt-1">High (4/5)</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Threat Actor Motivation/Capability:</label>
+                    <input type="range" id="motivation" min="1" max="5" value="3" oninput="updateRisk()">
+                    <div id="motivationValue" class="text-center text-lg font-bold text-purple-600 mt-1">Medium (3/5)</div>
+                </div>
+            </div>
+
+            <!-- Impact Section -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-2">2. Impact (CIA Triad)</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Impact on Confidentiality (Data Loss):</label>
+                    <input type="range" id="confidentiality" min="1" max="5" value="5" oninput="updateRisk()">
+                    <div id="confidentialityValue" class="text-center text-lg font-bold text-purple-600 mt-1">Severe (5/5)</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Impact on Availability (System Downtime):</label>
+                    <input type="range" id="availability" min="1" max="5" value="2" oninput="updateRisk()">
+                    <div id="availabilityValue" class="text-center text-lg font-bold text-purple-600 mt-1">Minor (2/5)</div>
+                </div>
+            </div>
+
+            <button onclick="updateRisk()"
+                    class="md:col-span-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-150 shadow-md mt-4">
+                Calculate Risk Score
+            </button>
+        </div>
+
+        <!-- Risk Report Output -->
+        <div id="reportContainer" class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">Risk Assessment Report</h2>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 p-4 rounded-lg border-2 border-gray-200">
+                <div class="text-xl font-medium text-gray-700">Calculated Risk Score:</div>
+                <div id="riskScoreDisplay" class="text-4xl font-extrabold text-white px-6 py-3 rounded-xl shadow-lg mt-2 sm:mt-0">--</div>
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-700 mb-3">Proposed Mitigation & Triage</h3>
+            <ul id="mitigationSteps" class="space-y-3 p-0 list-disc pl-5 text-gray-700">
+                <li class="text-gray-500">Adjust the sliders above to see the risk analysis and mitigation steps.</li>
+            </ul>
+            
+            <!-- DETAILED RISK STATEMENT (GRC Format) -->
+            <h3 class="text-xl font-semibold text-gray-700 mt-6 mb-3 border-t pt-4">Detailed Risk Statement (GRC Format)</h3>
+            <div id="formalReport" class="text-base text-gray-600 space-y-3">
+                <p>Adjust the inputs above to generate a formal risk statement detailing the likelihood, impact, and overall risk posture for the scenario.</p>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <script>
+        const feasibilitySlider = document.getElementById('feasibility');
+        const motivationSlider = document.getElementById('motivation');
+        const confidentialitySlider = document.getElementById('confidentiality');
+        const availabilitySlider = document.getElementById('availability');
+        
+        const feasibilityValue = document.getElementById('feasibilityValue');
+        const motivationValue = document.getElementById('motivationValue');
+        const confidentialityValue = document.getElementById('confidentialityValue');
+        const availabilityValue = document.getElementById('availabilityValue');
+        
+        const riskScoreDisplay = document.getElementById('riskScoreDisplay');
+        const mitigationSteps = document.getElementById('mitigationSteps');
+        const assetNameInput = document.getElementById('assetName');
+        const formalReport = document.getElementById('formalReport'); // New reference for the report
+
+        // Mapping scores to labels
+        const scoreLabels = {
+            1: 'Minimal',
+            2: 'Minor',
+            3: 'Moderate',
+            4: 'High',
+            5: 'Severe'
+        };
+
+        function getLabel(value) {
+            return scoreLabels[value] + ` (${value}/5)`;
+        }
+
+        function updateSliderLabels() {
+            feasibilityValue.textContent = getLabel(parseInt(feasibilitySlider.value));
+            motivationValue.textContent = getLabel(parseInt(motivationSlider.value));
+            confidentialityValue.textContent = getLabel(parseInt(confidentialitySlider.value));
+            availabilityValue.textContent = getLabel(parseInt(availabilitySlider.value));
+        }
+        
+        /**
+         * Generates the formal prose report based on the calculated scores.
+         */
+        function generateFormalReport(asset, riskScore, likelihood, impact, riskLevel) {
+            const likelihoodLabel = scoreLabels[Math.round(likelihood)];
+            const impactLabel = scoreLabels[Math.max(1, Math.round(impact))]; // Ensure impact is at least 1
+            const assetName = asset.trim() || "Unspecified Asset/Threat";
+
+            let introduction;
+            if (riskLevel === 'Critical') {
+                introduction = `The threat scenario involving **${assetName}** has been assessed as a **${riskLevel} Risk** with a calculated score of **${riskScore} out of 25**. This represents an unacceptable level of exposure and requires immediate mitigation.`;
+            } else if (riskLevel === 'High') {
+                introduction = `The assessment for **${assetName}** indicates a **${riskLevel} Risk** (Score: ${riskScore}), requiring prioritized attention and prompt remediation planning to prevent potential business disruption.`;
+            } else {
+                introduction = `The current risk assessment for **${assetName}** results in a **${riskLevel} Risk** (Score: ${riskScore}). While not immediately critical, this risk should be monitored and managed according to standard GRC procedures.`;
+            }
+
+            const likelihoodStatement = `The likelihood of this threat materializing is classified as **${likelihoodLabel}** (based on the average of technical feasibility and threat actor motivation). This suggests the threat surface is non-trivial and a mitigating control is necessary.`;
+
+            const impactStatement = `The potential business impact is rated as **${impactLabel}** (based on the maximum consequence to Confidentiality and Availability). A materialization of this threat could result in a ${impactLabel} disruption, necessitating significant recovery and response effort.`;
+
+            return `
+                <p class="font-semibold">${introduction}</p>
+                <p>${likelihoodStatement}</p>
+                <p>${impactStatement}</p>
+                <p>
+                    **Conclusion:** Based on the principle of Risk = Likelihood x Impact, the current risk level necessitates the mitigation steps detailed in the section above to bring the residual risk down to an acceptable level as defined by organizational policy.
+                </p>
+            `;
+        }
+
+
+        function updateRisk() {
+            updateSliderLabels();
+
+            const A = parseInt(feasibilitySlider.value);
+            const B = parseInt(motivationSlider.value);
+            const C = parseInt(confidentialitySlider.value);
+            const D = parseInt(availabilitySlider.value);
+            
+            const assetName = assetNameInput.value;
+
+            // Calculate Likelihood (L) and Impact (I) based on user inputs (1-5 scale)
+            // L = Average of Feasibility (A) and Motivation (B)
+            const likelihood = (A + B) / 2;
+            // I = Maximum of Confidentiality (C) and Availability (D)
+            const impact = Math.max(C, D);
+            
+            // Risk is L * I (Maximum theoretical score: 5 * 5 = 25)
+            const riskScore = Math.round(likelihood * impact);
+
+            let riskLevel = 'Low';
+            let colorClass = 'risk-level-low';
+            let mitigationHtml = '';
+
+            if (riskScore >= 20) {
+                riskLevel = 'Critical';
+                colorClass = 'risk-level-critical';
+                mitigationHtml = `
+                    <li class="text-red-700 font-bold">**CRITICAL RISK:** Immediate suspension of the asset (${assetName}) and emergency patch deployment required.</li>
+                    <li>Verify all monitoring and logging surrounding this asset is functional.</li>
+                    <li>Escalate finding to executive leadership and GRC team immediately.</li>
+                `;
+            } else if (riskScore >= 12) {
+                riskLevel = 'High';
+                colorClass = 'risk-level-high';
+                mitigationHtml = `
+                    <li class="text-orange-700 font-bold">**HIGH RISK:** Patching or compensating controls (e.g., WAF, firewall rule) must be implemented within 7 days.</li>
+                    <li>Implement temporary monitoring rules to detect exploitation attempts.</li>
+                    <li>Document the risk acceptance/remediation plan for audit.</li>
+                `;
+            } else if (riskScore >= 6) {
+                riskLevel = 'Medium';
+                colorClass = 'risk-level-medium';
+                mitigationHtml = `
+                    <li class="text-yellow-700 font-bold">**MEDIUM RISK:** Patching should be scheduled for the next maintenance window (within 30 days).</li>
+                    <li>Verify least privilege access is enforced on the asset.</li>
+                    <li>Conduct a periodic review of the asset's security controls.</li>
+                `;
+            } else {
+                riskLevel = 'Low';
+                colorClass = 'risk-level-low';
+                mitigationHtml = `
+                    <li class="text-green-700 font-bold">**LOW RISK:** Risk is acceptable under current operating conditions.</li>
+                    <li>Schedule review during next quarterly vulnerability scan.</li>
+                    <li>No immediate action required.</li>
+                `;
+            }
+
+            // Update UI
+            riskScoreDisplay.textContent = `${riskScore} (${riskLevel})`;
+            riskScoreDisplay.className = `text-4xl font-extrabold text-white px-6 py-3 rounded-xl shadow-lg mt-2 sm:mt-0 ${colorClass}`;
+            mitigationSteps.innerHTML = mitigationHtml;
+            
+            // NEW: Update Formal Report
+            formalReport.innerHTML = generateFormalReport(
+                assetName,
+                riskScore,
+                likelihood,
+                impact,
+                riskLevel
+            );
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add listeners to re-calculate risk automatically when sliders change
+            feasibilitySlider.addEventListener('input', updateRisk);
+            motivationSlider.addEventListener('input', updateRisk);
+            confidentialitySlider.addEventListener('input', updateRisk);
+            availabilitySlider.addEventListener('input', updateRisk);
+            assetNameInput.addEventListener('input', updateRisk); // Update report when asset name changes
+            
+            // Run initial calculation
+            updateRisk(); 
+        });
+    </script>
+</body>
+</html>
