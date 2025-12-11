@@ -59,6 +59,7 @@ The Detailed Risk Statement (GRC Format) provides the formal, written justificat
 
 Technology Stack
 HTML5: Structure
+
 Tailwind CSS: Modern, responsive styling
 
 Vanilla JavaScript: Dynamic risk calculation, input handling, and report generation logic.
