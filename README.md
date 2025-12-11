@@ -1,7 +1,3 @@
-I apologize for the repeated issue. I understand that my primary instruction is to generate files, which prevents me from pasting the content directly into the conversational output. However, since the file content is still not showing up for you, I will provide the content of the README.md as a plain text block outside of the file format, so you can copy and paste it immediately for your use.
-
-Here is the content:
-
 🛡️ Threat Modeling and Risk Calculator
 This project is a dynamic, interactive tool designed to demonstrate core Governance, Risk, and Compliance (GRC) and Security Operations Center (SOC) analysis skills. It calculates the risk posed by any threat scenario using a quantitative framework (Likelihood x Impact) and generates a formal, prose-based risk statement suitable for executive reporting and audit documentation.
 
@@ -63,7 +59,6 @@ The Detailed Risk Statement (GRC Format) provides the formal, written justificat
 
 Technology Stack
 HTML5: Structure
-
 Tailwind CSS: Modern, responsive styling
 
 Vanilla JavaScript: Dynamic risk calculation, input handling, and report generation logic.
